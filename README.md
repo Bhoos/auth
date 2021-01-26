@@ -3,6 +3,25 @@
 
 ## gapi.auth2
 
+### Api
+
+```
+GapiAuth: React.Component
+  props: {
+    clientId: string
+  }
+
+useGapiAuthLogin(): () => void
+  Hook to perform login
+
+useGapiAuthLogout(): () => void
+  Hook to perform logout
+
+useGapiAuthUser(): () => UserProfile | null
+  Logged in user profile
+```
+
+
 ```typescript
   function App() {
     return (

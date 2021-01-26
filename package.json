@@ -1,0 +1,32 @@
+{
+  "name": "@bhoos/auth",
+  "version": "1.0.0",
+  "description": "Third Party Authentication Library",
+  "main": "dist/index.js",
+  "module": "es6/index.js",
+  "react-native": "src/index.ts",
+  "type": "module",
+  "files": [
+    "es6",
+    "dist"
+  ],
+  "scripts": {
+    "build:es6": "rimraf es6 && tsc",
+    "build:cjs": "rimraf dist && tsc --module commonjs --outDir dist",
+    "build": "yarn build:es6 && yarn build:cjs"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "repository": "git@github.com:bhoos/auth",
+  "author": "Ranjan Shrestha <ranjan@sharingapples.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/gapi": "^0.0.39",
+    "@types/gapi.auth2": "^0.0.52",
+    "@types/node": "^14.14.22",
+    "@types/react": "^16",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.1.3"
+  }
+}
