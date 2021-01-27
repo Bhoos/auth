@@ -1,5 +1,5 @@
 import { useContext, useEffect } from 'react';
-import { AuthContext, useAuthLogin } from '../../AuthContext';
+import { AuthContext, AuthProfile, useAuthLogin, Validation } from '../../AuthContext';
 import loadScript from '../../utils/load_script';
 import removeScript from '../../utils/remove_script';
 
@@ -20,7 +20,7 @@ function toAuthProfile(user: gapi.auth2.GoogleUser) {
   };
 }
 
-export function useGoogleAuth({ clientId }: { clientId: string }) {
+export function useGoogleAuth({ clientId }: { clientId: string }, validation?: Validation) {
   const authManager = useContext(AuthContext);
   
   useEffect(() => {
@@ -34,20 +34,22 @@ export function useGoogleAuth({ clientId }: { clientId: string }) {
       window.gapi.load('auth2', () => {
         window.gapi.auth2.init(params).then(auth2 => {
           const provider = {
+            type: AUTH_ID,
+
             login: async () => {
               const user = await auth2.signIn();
-              authManager.setActive(provider);
+              authManager.activate(provider, validation);
               return toAuthProfile(user);
             },
             logout: () => {
               auth2.signOut();
-              authManager.setActive(null);
+              authManager.activate(null);
             },
             getProfile: () => {
               return toAuthProfile(auth2.currentUser.get())
             },
           }
-          auth.setup(provider, auth2.isSignedIn.get());
+          auth.setup(provider, auth2.isSignedIn.get(), validation);
         },
           err => {
             auth.clear(err.error);
