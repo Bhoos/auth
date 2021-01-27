@@ -11,12 +11,16 @@ export type AuthProfile = {
 }
 
 export interface AuthProvider {
-  login(): Promise<AuthProfile>;
+  readonly type: string;
 
+  login(): Promise<AuthProfile>;
   logout(): void;
 
   getProfile(): AuthProfile;
 }
+
+type LoginPayload = { type: string, token: string };
+export type Validation = (payload: LoginPayload, profile: AuthProfile) => Promise<void>;
 
 class AuthManager {
   private providers = new Map<string, AuthProvider>();
@@ -32,11 +36,16 @@ class AuthManager {
     );
   }
 
-  setActive(provider: AuthProvider) {
-    if (this.activeProvider !== provider) {
-      this.activeProvider = provider;
-      this.listeners.forEach(l => l(provider));
+  async activate(provider: AuthProvider, validation?: Validation) {
+    if (this.activeProvider === provider) return;
+    if (validation) {
+      const profile = provider.getProfile();
+      console.log('Validation', validation);
+      await validation({ type: provider.type, token: profile.token }, profile);
     }
+
+    this.activeProvider = provider;
+    this.listeners.forEach(l => l(provider));
   }
 
   subscribe(dispatch: Dispatch<AuthProvider>) {
@@ -47,6 +56,7 @@ class AuthManager {
     }
   }
 
+  
   register(type: string) {
     if (this.initializing.has(type) || this.providers.has(type)) {
       throw new Error(`Auth Provider ${type} is already registered`);
@@ -55,13 +65,13 @@ class AuthManager {
     this.initializing.add(type);
 
     return {
-      setup: (provider: AuthProvider, active: boolean) => {
+      setup: (provider: AuthProvider, active: boolean, validation?: Validation) => {
         this.providers.set(type, provider);
         this.initializing.delete(type);
         if (active) {
-          this.setActive(provider);
+          this.activate(provider, validation);
         } else if (this.initializing.size === 0 && !this.activeProvider) {
-          this.setActive(null);
+          this.activate(null);
         }
       },
       clear: (err?: string) => {
@@ -71,7 +81,7 @@ class AuthManager {
         this.initializing.delete(type);
         this.providers.delete(type);
         if (this.initializing.size === 0 && !this.activeProvider) {
-          this.setActive(null);
+          this.activate(null);
         }
       }
     };
@@ -87,10 +97,11 @@ export const AuthContext = React.createContext(new AuthManager());
 export function useAuthLogin(type: string) {
   const authManager = useContext(AuthContext);
 
-  return () => {
+  return async () => {
     const authProvider = authManager.get(type);
     if (!authProvider) throw new Error(`No provider found for ${type}`);
-    return authProvider.login();
+
+    return await authProvider.login();
   }
 }
 
