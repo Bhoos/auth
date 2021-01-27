@@ -1,6 +1,6 @@
 {
   "name": "@bhoos/auth",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Third Party Authentication Library",
   "main": "dist/index.js",
   "module": "es6/index.js",
